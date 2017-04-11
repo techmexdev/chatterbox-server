@@ -37,7 +37,7 @@ var Message = function (roomname, username, text, createdAt) {
   this.createdAt = createdAt || (new Date()).toString();
   this.objectId = Date.now();
   this.updatedAt = this.createdAt;
-  this.message = text
+  this.message = text;
 };  
 
 // var database = [new Message("lobby", 'badboy34', 'this is the first message. I rule!', (new Date('December 17, 1995 03:24:00')).toString() )];
@@ -67,16 +67,15 @@ var requestHandler = function(request, response) {
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
 
-  if (!(new RegExp('^/chatterbox/classes/messages?', 'i')).test(request.url) && request.url !== '/chatterbox/classes/messages') {
-    response.writeHead(404, headers);
-  }
-  // Tell the client we are sending them plain text.
-  //
-  // You will need to change this if you are sending something
-  // other than plain text, like JSON or HTML.
+  var restEndpoint = require('url').parse(request.url).pathname;
+  //console.log('~~~~~~~~~~~~~~~~~~~~~~~>>>>>', restEndpoint)
 
-  // .writeHead() writes to the request line and headers of the response,
-  // which includes the status and all headers.
+  //if ('/chatterbox/classes/messages?'.indexOf(request.url) === -1 && request.url.indexOf('/chatterbox/classes/messages?') === -1) {
+  if(restEndpoint !== '/classes/messages' && restEndpoint !== '/chatterbox/classes/messages') {
+    response.writeHead(404, headers);
+    response.end();
+    return;
+  }
   response.writeHead(statusCode, headers);
   if (request.method === 'OPTIONS') {
     response.end();
@@ -95,18 +94,13 @@ var requestHandler = function(request, response) {
       body.push(chunk);
     });
     request.on('end', function () {
-      var params = queryString.parse(body.join(''));
+      body = body.join('');
+      var params = body[0] === '{'? JSON.parse(body) : queryString.parse(body);
       var path = request.url;
-      // console.log(path);
-      //console.log(params);
-      var newMessage = new Message(params.roomname || 'lobby', params.username, params.message);
+      var newMessage = new Message(params.roomname || 'lobby', params.username, params.text || params.message);
       database.push(newMessage);
       response.end(JSON.stringify('Awesome M8'));
-      // response.end(JSON.stringify(newMessage));
     });
-    // request.on('error', function (err) {
-    //   console.log(err);
-    // });
   }
 
   // Make sure to always call response.end() - Node may not send
