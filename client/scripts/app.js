@@ -66,17 +66,20 @@ var app = {
       success: function(data) {
         console.log(data);
         // Don't bother if we have nothing to work with
+        if(data.results && !data.results.length) {
+          app.stopSpinner();
+        }
         if (!data.results || !data.results.length) { return; }
         //if (!data.results) { return; }
         // Store messages for caching later
         app.messages = data.results;
-
         // Get the last message
         var mostRecentMessage = data.results[data.results.length - 1];
-
+        //console.log('mrm', mostRecentMessage)
         // Only bother updating the DOM if we have a new message
         if (mostRecentMessage.objectId !== app.lastMessageId) {
           // Update the UI with the fetched rooms
+
           app.renderRoomList(data.results);
 
           // Update the UI with the fetched messages
@@ -84,7 +87,7 @@ var app = {
 
           // Store the ID of the most recent message
           app.lastMessageId = mostRecentMessage.objectId;
-        }
+        } 
       },
       error: function(error) {
         console.error('chatterbox: Failed to fetch messages', error);

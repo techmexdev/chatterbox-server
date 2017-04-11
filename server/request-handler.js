@@ -37,10 +37,11 @@ var Message = function (roomname, username, text, createdAt) {
   this.createdAt = createdAt || (new Date()).toString();
   this.objectId = Date.now();
   this.updatedAt = this.createdAt;
+  this.message = text
 };  
 
-var database = [new Message("lobby", 'badboy34', 'this is the first message. I rule!', (new Date('December 17, 1995 03:24:00')).toString() )];
-
+// var database = [new Message("lobby", 'badboy34', 'this is the first message. I rule!', (new Date('December 17, 1995 03:24:00')).toString() )];
+var database = [];
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -83,7 +84,9 @@ var requestHandler = function(request, response) {
   if (request.method === 'GET') {
     headers['Content-Type'] = 'application/json';
     //console.log(JSON.stringify(database));
-    response.end(JSON.stringify({results: database.map((message) => message)}));
+    var newArray = database.slice(0).map((message) => message);
+    // console.log(newArray)
+    response.end(JSON.stringify({results: newArray}));
 
   } else if (request.method === 'POST') {
     response.writeHead(201, headers);
@@ -95,9 +98,9 @@ var requestHandler = function(request, response) {
       var params = queryString.parse(body.join(''));
       var path = request.url;
       // console.log(path);
-      // console.log(params.text);
-      var newMessage = new Message(params.roomname, params.username, params.text);
-      database.unshift(newMessage);
+      //console.log(params);
+      var newMessage = new Message(params.roomname || 'lobby', params.username, params.message);
+      database.push(newMessage);
       response.end(JSON.stringify('Awesome M8'));
       // response.end(JSON.stringify(newMessage));
     });
