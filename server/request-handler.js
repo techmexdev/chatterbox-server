@@ -20,15 +20,17 @@ this file and include it in basic-server.js so that it actually works.
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
+var url = require('url');
+var queryString = require('querystring');
+var fs = require('fs');
+var serve = require('./serveHTML');
+
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'access-control-allow-headers': 'content-type, accept',
   'access-control-max-age': 10 // Seconds.
 };
-
-var url = require('url');
-var queryString = require('querystring');
 
 var Message = function (roomname, username, text, createdAt) {
   this.roomname = roomname;
@@ -69,12 +71,13 @@ var requestHandler = function(request, response) {
 
   var restEndpoint = require('url').parse(request.url).pathname;
   //console.log('~~~~~~~~~~~~~~~~~~~~~~~>>>>>', restEndpoint)
-
-  //if ('/chatterbox/classes/messages?'.indexOf(request.url) === -1 && request.url.indexOf('/chatterbox/classes/messages?') === -1) {
-  if(restEndpoint !== '/classes/messages' && restEndpoint !== '/chatterbox/classes/messages') {
-    response.writeHead(404, headers);
-    response.end();
+  
+  if (restEndpoint !== '/classes/messages' && restEndpoint !== '/chatterbox/classes/messages') {
+    serve(request, response);
     return;
+    // response.writeHead(404, headers);
+    // response.end();
+    // return;
   }
   response.writeHead(statusCode, headers);
   if (request.method === 'OPTIONS') {

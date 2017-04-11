@@ -68,8 +68,49 @@ describe('server', function() {
     });
   });
 
+  it('should respond with at least two elements', function(done) {
+    var requestParams = {method: 'POST',
+      uri: 'http://127.0.0.1:3000/classes/messages',
+      json: {
+        username: 'Jono',
+        message: 'Do my bidding!'}
+    };
+
+    request(requestParams, function(error, response, body) {
+      // Now if we request the log, that message we posted should be there:
+      request(requestParams, function(error, response, body) {
+        request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+          var messages = JSON.parse(body).results.length;
+          //console.log(messages);
+          expect(messages).to.be.at.least(3);
+          ///expect(messages[0].message).to.equal('Do my bidding!');
+
+          done();
+        });
+      });
+    });
+  });
+
   it('Should 404 when asked for a nonexistent endpoint', function(done) {
     request('http://127.0.0.1:3000/arglebargle', function(error, response, body) {
+      expect(response.statusCode).to.equal(404);
+      done();
+    });
+  });
+  it('Should 404 when asked for a nonexistent endpoint', function(done) {
+    request('http://127.0.0.1:3000/classes/messages2', function(error, response, body) {
+      expect(response.statusCode).to.equal(404);
+      done();
+    });
+  });
+  it('Should 404 when asked for a nonexistent endpoint', function(done) {
+    request('http://127.0.0.1:3000/messages/classes', function(error, response, body) {
+      expect(response.statusCode).to.equal(404);
+      done();
+    });
+  });
+  it('Should 404 when asked for a nonexistent endpoint', function(done) {
+    request('http://127.0.0.1:3000/chatterbox/classes/messages/otherthing', function(error, response, body) {
       expect(response.statusCode).to.equal(404);
       done();
     });
