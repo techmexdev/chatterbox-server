@@ -24,6 +24,7 @@ var url = require('url');
 var queryString = require('querystring');
 var fs = require('fs');
 var serve = require('./serveHTML');
+var Database = require('./database');
 
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
@@ -42,8 +43,8 @@ var Message = function (roomname, username, text, createdAt) {
   this.message = text;
 };  
 
-// var database = [new Message("lobby", 'badboy34', 'this is the first message. I rule!', (new Date('December 17, 1995 03:24:00')).toString() )];
-var database = [];
+var database = new Database.Database('messages.txt');
+
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -85,10 +86,8 @@ var requestHandler = function(request, response) {
   }
   if (request.method === 'GET') {
     headers['Content-Type'] = 'application/json';
-    //console.log(JSON.stringify(database));
-    var newArray = database.slice(0).map((message) => message);
-    // console.log(newArray)
-    response.end(JSON.stringify({results: newArray}));
+    
+    response.end(JSON.stringify({results: database.data()}));
 
   } else if (request.method === 'POST') {
     response.writeHead(201, headers);
@@ -101,7 +100,7 @@ var requestHandler = function(request, response) {
       var params = body[0] === '{'? JSON.parse(body) : queryString.parse(body);
       var path = request.url;
       var newMessage = new Message(params.roomname || 'lobby', params.username, params.text || params.message);
-      database.push(newMessage);
+      database.insert(newMessage);
       response.end(JSON.stringify('Awesome M8'));
     });
   }
